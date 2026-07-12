@@ -6,6 +6,7 @@ import {
 	ANNOTS_TREATED_AS_HIGHLIGHTS,
 	PDFAnnotationPluginSetting,
 } from "./settings";
+import { markHighlight, colorToHex } from "./colorMarker";
 
 export class PDFAnnotationPluginFormatter {
 	private settings: PDFAnnotationPluginSetting;
@@ -99,6 +100,8 @@ export class PDFAnnotationPluginFormatter {
 	getTemplateVariablesForAnnotation(annotation: any): Record<string, any> {
 		const shortcuts = {
 			highlightedText: annotation.highlightedText,
+			markedText: markHighlight(annotation.color, annotation.highlightedText ?? ""),
+			color: colorToHex(annotation.color),
 			folder: annotation.folder,
 			file: annotation.file,
 			filepath: annotation.filepath,

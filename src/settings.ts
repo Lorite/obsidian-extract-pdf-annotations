@@ -10,6 +10,8 @@ import { IIndexable } from "src/types";
 
 export const TEMPLATE_VARIABLES = {
 	highlightedText: "Highlighted text from PDF",
+	markedText: "Highlighted text prefixed/wrapped by a marker chosen from the highlight colour (Zotero palette: red ❗, blue 💬 quote, green [[wikilink]], purple #️⃣, magenta ✨, orange 🖼️, yellow = none)",
+	color: "Hex colour of the highlight, e.g. #FFD400",
 	folder: "Folder of PDF file",
 	file: "Binary content of file",
 	filepath: "Path of PDF file",
