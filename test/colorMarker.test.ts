@@ -15,28 +15,28 @@ describe('colorToHex', () => {
 });
 
 describe('markHighlight maps the Zotero palette to one marker each', () => {
-	test('yellow -> general (no marker)', () => {
-		expect(markHighlight(rgb(255, 212, 0), 'TEXT')).toEqual('TEXT');
+	test('yellow -> general list item (no marker)', () => {
+		expect(markHighlight(rgb(255, 212, 0), 'TEXT')).toEqual('- TEXT');
 	});
 	test('red -> super-important', () => {
-		expect(markHighlight(rgb(255, 102, 102), 'TEXT')).toEqual('❗ TEXT');
+		expect(markHighlight(rgb(255, 102, 102), 'TEXT')).toEqual('- ❗ TEXT');
 	});
 	test('blue -> quote', () => {
-		expect(markHighlight(rgb(46, 168, 229), 'TEXT')).toEqual('💬 TEXT');
+		expect(markHighlight(rgb(46, 168, 229), 'TEXT')).toEqual('- 💬 TEXT');
 	});
 	test('green -> concept wikilink', () => {
-		expect(markHighlight(rgb(95, 178, 54), 'TEXT')).toEqual('[[TEXT]]');
+		expect(markHighlight(rgb(95, 178, 54), 'TEXT')).toEqual('- [[TEXT]]');
 	});
-	test('purple -> header', () => {
-		expect(markHighlight(rgb(162, 138, 229), 'TEXT')).toEqual('#️⃣ TEXT');
+	test('purple -> Markdown heading (no bullet)', () => {
+		expect(markHighlight(rgb(162, 138, 229), 'TEXT')).toEqual('# TEXT');
 	});
 	test('magenta -> vocabulary', () => {
-		expect(markHighlight(rgb(229, 110, 238), 'TEXT')).toEqual('✨ TEXT');
+		expect(markHighlight(rgb(229, 110, 238), 'TEXT')).toEqual('- ✨ TEXT');
 	});
 	test('orange -> image', () => {
-		expect(markHighlight(rgb(241, 152, 55), 'TEXT')).toEqual('🖼️ TEXT');
+		expect(markHighlight(rgb(241, 152, 55), 'TEXT')).toEqual('- 🖼️ TEXT');
 	});
-	test('unknown colour (grey) -> unmarked', () => {
-		expect(markHighlight(rgb(170, 170, 170), 'TEXT')).toEqual('TEXT');
+	test('unknown colour (grey) -> plain list item', () => {
+		expect(markHighlight(rgb(170, 170, 170), 'TEXT')).toEqual('- TEXT');
 	});
 });
