@@ -51,3 +51,18 @@ describe('markHighlight maps the Zotero palette to one marker each', () => {
 		expect(markHighlight(rgb(170, 170, 170), 'TEXT')).toEqual('- TEXT');
 	});
 });
+
+describe('multiple colours per meaning — GNOME "Papers" palette maps like Zotero', () => {
+	test('GNOME purple #C061CB -> header', () => {
+		expect(markHighlight(rgb(0xC0, 0x61, 0xCB), '2.1 Method')).toEqual('## 2.1 Method');
+	});
+	test('GNOME yellow #F5C211 -> general', () => {
+		expect(markHighlight(rgb(0xF5, 0xC2, 0x11), 'TEXT')).toEqual('- TEXT');
+	});
+	test('GNOME green #33D17A -> concept wikilink', () => {
+		expect(markHighlight(rgb(0x33, 0xD1, 0x7A), 'TEXT')).toEqual('- [[TEXT]]');
+	});
+	test('GNOME red #ED333B -> super-important', () => {
+		expect(markHighlight(rgb(0xED, 0x33, 0x3B), 'TEXT')).toEqual('- ❗ TEXT');
+	});
+});
