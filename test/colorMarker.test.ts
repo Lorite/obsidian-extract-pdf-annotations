@@ -1,5 +1,12 @@
 import { describe, expect, test } from '@jest/globals';
-import { colorToHex, markHighlight, headingLevel } from '../src/colorMarker';
+import {
+	colorToHex,
+	markHighlight,
+	headingLevel,
+	parseColorMarkerRules,
+	applyMarker,
+	DEFAULT_COLOR_MARKER_RULES,
+} from '../src/colorMarker';
 
 // pdf.js delivers annotation.color as a Uint8ClampedArray [r,g,b].
 const rgb = (r: number, g: number, b: number) => new Uint8ClampedArray([r, g, b]);
@@ -49,6 +56,52 @@ describe('markHighlight maps the Zotero palette to one marker each', () => {
 	});
 	test('unknown colour (grey) -> plain list item', () => {
 		expect(markHighlight(rgb(170, 170, 170), 'TEXT')).toEqual('- TEXT');
+	});
+});
+
+describe('applyMarker expands the template placeholders', () => {
+	test('{{text}} is substituted', () => {
+		expect(applyMarker('- ❗ {{text}}', 'hi')).toEqual('- ❗ hi');
+	});
+	test('{{heading}} expands from the section number', () => {
+		expect(applyMarker('{{heading}} {{text}}', '2.1 Method')).toEqual('## 2.1 Method');
+	});
+	test('braces inside the text stay literal', () => {
+		expect(applyMarker('- {{text}}', 'see {{heading}}')).toEqual('- see {{heading}}');
+	});
+});
+
+describe('parseColorMarkerRules', () => {
+	test('maps every listed colour (upper-cased) to its template', () => {
+		const lookup = parseColorMarkerRules('#aabbcc, #DDEEFF = - ❗ {{text}}');
+		expect(lookup.get('#AABBCC')).toEqual('- ❗ {{text}}');
+		expect(lookup.get('#DDEEFF')).toEqual('- ❗ {{text}}');
+	});
+	test('ignores // comments, blank lines and shapeless lines', () => {
+		const lookup = parseColorMarkerRules('// a comment\n\nno equals here\n#123456 = - {{text}}');
+		expect(lookup.size).toEqual(1);
+		expect(lookup.get('#123456')).toEqual('- {{text}}');
+	});
+	test('inline /* */ notes on the left are ignored', () => {
+		const lookup = parseColorMarkerRules('#123456 /*note*/ = - {{text}}');
+		expect(lookup.get('#123456')).toEqual('- {{text}}');
+	});
+	test('the default rules reproduce the built-in scheme', () => {
+		const lookup = parseColorMarkerRules(DEFAULT_COLOR_MARKER_RULES);
+		expect(lookup.get('#FF6666')).toEqual('- ❗ {{text}}');
+		expect(lookup.get('#5FB236')).toEqual('- [[{{text}}]]');
+		expect(lookup.get('#A28AE5')).toEqual('{{heading}} {{text}}');
+		expect(lookup.get('#FFD400')).toEqual('- {{text}}');
+	});
+});
+
+describe('markHighlight honours a custom lookup', () => {
+	const lookup = parseColorMarkerRules('#123456 = > {{text}}');
+	test('mapped colour uses the custom template', () => {
+		expect(markHighlight(rgb(0x12, 0x34, 0x56), 'TEXT', lookup)).toEqual('> TEXT');
+	});
+	test('colour absent from the custom lookup falls back to a plain item', () => {
+		expect(markHighlight(rgb(255, 212, 0), 'TEXT', lookup)).toEqual('- TEXT');
 	});
 });
 

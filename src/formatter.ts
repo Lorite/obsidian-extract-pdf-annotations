@@ -6,10 +6,14 @@ import {
 	ANNOTS_TREATED_AS_HIGHLIGHTS,
 	PDFAnnotationPluginSetting,
 } from "./settings";
-import { markHighlight, colorToHex } from "./colorMarker";
+import { markHighlight, colorToHex, parseColorMarkerRules } from "./colorMarker";
 
 export class PDFAnnotationPluginFormatter {
 	private settings: PDFAnnotationPluginSetting;
+
+	// Cached hex -> line-template lookup, rebuilt only when the rules text changes.
+	private markerLookup: Map<string, string>;
+	private markerLookupSource: string;
 
 	// Template compilation options
 	private templateSettings = {
@@ -97,10 +101,21 @@ export class PDFAnnotationPluginFormatter {
 		);
 	}
 
+	// The colour marker rules can change at runtime via the settings tab; reparse
+	// only when the source text differs from what we last cached.
+	private getMarkerLookup(): Map<string, string> {
+		const source = this.settings.colorMarkerRules;
+		if (this.markerLookupSource !== source) {
+			this.markerLookup = parseColorMarkerRules(source);
+			this.markerLookupSource = source;
+		}
+		return this.markerLookup;
+	}
+
 	getTemplateVariablesForAnnotation(annotation: any): Record<string, any> {
 		const shortcuts = {
 			highlightedText: annotation.highlightedText,
-			markedText: markHighlight(annotation.color, annotation.highlightedText ?? ""),
+			markedText: markHighlight(annotation.color, annotation.highlightedText ?? "", this.getMarkerLookup()),
 			color: colorToHex(annotation.color),
 			folder: annotation.folder,
 			file: annotation.file,

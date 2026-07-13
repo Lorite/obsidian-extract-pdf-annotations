@@ -7,10 +7,11 @@ import {
 } from "obsidian";
 import PDFAnnotationPlugin from "src/main";
 import { IIndexable } from "src/types";
+import { DEFAULT_COLOR_MARKER_RULES } from "src/colorMarker";
 
 export const TEMPLATE_VARIABLES = {
 	highlightedText: "Highlighted text from PDF",
-	markedText: "Highlighted text as a full Markdown line lead chosen from the highlight colour (Zotero palette): a '- ' list item for red ❗, blue 💬 quote, green [[wikilink]], magenta ✨, orange 🖼️, yellow (plain); a '# ' heading for purple (level from the leading section number: '1.'→#, '2.1'→##, '2.1.1'→###). Use it WITHOUT a leading '- ' in the template.",
+	markedText: "Highlighted text as a full Markdown line lead chosen from the highlight colour, per the 'Colour marker rules' setting below (e.g. a '- ' list item with an emoji, a green [[wikilink]], or a '# ' heading for headers). Includes its own leading '- ' or '# ', so use it WITHOUT a leading '- ' in the template.",
 	color: "Hex colour of the highlight, e.g. #FFD400",
 	folder: "Folder of PDF file",
 	file: "Binary content of file",
@@ -51,6 +52,7 @@ export class PDFAnnotationPluginSetting {
 	public overwriteExistingNote: boolean;
 	public extractTagsFromAnnotationsAsObsidianTags: boolean;
 	public exportClipboardExtraction: boolean;
+	public colorMarkerRules: string;
 	public parsedSettings: {
 		desiredAnnotations: string[];
 	};
@@ -91,6 +93,7 @@ export class PDFAnnotationPluginSetting {
 		this.overwriteExistingNote = false;
 		this.extractTagsFromAnnotationsAsObsidianTags = false;
 		this.exportClipboardExtraction = false;
+		this.colorMarkerRules = DEFAULT_COLOR_MARKER_RULES;
 		this.parsedSettings = {
 			desiredAnnotations: this.parseCommaSeparatedStringToArray(
 				this.desiredAnnotations
@@ -249,6 +252,53 @@ export class PDFAnnotationPluginSettingTab extends PluginSettingTab {
 				input.inputEl.style.width = "100%";
 				input.inputEl.style.height = "10em";
 				this.buildValueInput(input, "highlightTemplateInternalPDFs");
+			});
+
+		containerEl.createEl("h4", { text: "Highlight colour markers" });
+		const colorMarkerInstructionsEl = containerEl.createEl("p");
+		colorMarkerInstructionsEl.append(
+			createSpan({
+				text:
+					"The {{markedText}} template variable renders each highlight as a full Markdown " +
+					"line, chosen from the highlight's colour by the rules below. Write one rule per " +
+					"line as ",
+			})
+		);
+		colorMarkerInstructionsEl.append(
+			createSpan({ cls: "text-monospace", text: "#RRGGBB, #RRGGBB = template" })
+		);
+		colorMarkerInstructionsEl.append(
+			createSpan({
+				text:
+					". The left side is any number of hex colours (comma- or space-separated; " +
+					"inline /* */ notes are ignored); the right side is the line template, which " +
+					"may use ",
+			})
+		);
+		colorMarkerInstructionsEl.append(
+			createSpan({ cls: "text-monospace", text: "{{text}}" })
+		);
+		colorMarkerInstructionsEl.append(
+			createSpan({ text: " (the highlighted text) and " })
+		);
+		colorMarkerInstructionsEl.append(
+			createSpan({ cls: "text-monospace", text: "{{heading}}" })
+		);
+		colorMarkerInstructionsEl.append(
+			createSpan({
+				text:
+					" (Markdown heading marks from the leading section number: '1.'→#, '2.1'→##, " +
+					"'2.1.1'→###). Lines starting with // are comments. Any colour without a rule " +
+					"becomes a plain '- ' list item.",
+			})
+		);
+		new Setting(containerEl)
+			.setName("Colour marker rules")
+			.addTextArea((input) => {
+				input.inputEl.style.width = "100%";
+				input.inputEl.style.height = "12em";
+				input.inputEl.style.fontFamily = "monospace";
+				this.buildValueInput(input, "colorMarkerRules");
 			});
 
 		containerEl.createEl("h4", { text: "Structure settings" });
