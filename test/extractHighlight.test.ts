@@ -52,6 +52,16 @@ describe('extractHighlight - simple text', () => {
     expect(result).toBe('e (S');
   });
 
+  test('should keep reading order when quads are stored bottom-to-top', () => {
+    // Same two lines as above but with the quads in reverse (bottom line first),
+    // as GNOME "Papers" stores them. The result must still read top-to-bottom.
+    const annot = {
+      quadPoints: [52.000, 694.118, 63.988, 694.118, 52.000, 682.742, 63.988, 682.742, 93.508, 723.974, 100.180, 723.974, 93.508, 715.118, 100.180, 715.118],
+    };
+    const result = extractHighlight(annot, items);
+    expect(result).toBe('e (S');
+  });
+
   test('should extract highlighted letter', () => {
     const annot = {
       quadPoints: [71.5, 663.974, 82.816, 663.974, 71.5, 653.558, 82.816, 653.558],

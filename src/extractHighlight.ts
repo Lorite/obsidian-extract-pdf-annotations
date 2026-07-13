@@ -52,24 +52,29 @@ export function extractHighlight(annot: any, items: any) {
 		}
 		legacyQuadPoints.push(oneQuad);
 	}
-	const highlight = legacyQuadPoints.reduce((txt: string, quad: any) => {
-		const minx = quad.reduce(
-			(prev: number, curr: any) => Math.min(prev, curr.x),
-			quad[0].x
-		);
-		const maxx = quad.reduce(
-			(prev: number, curr: any) => Math.max(prev, curr.x),
-			quad[0].x
-		);
-		const miny = quad.reduce(
-			(prev: number, curr: any) => Math.min(prev, curr.y),
-			quad[0].y
-		);
-		const maxy = quad.reduce(
-			(prev: number, curr: any) => Math.max(prev, curr.y),
-			quad[0].y
-		);
-		const res = searchQuad(minx, maxx, miny, maxy, items);
+	// Bounding box of each line-quad.
+	const boxes = legacyQuadPoints.map((quad: any) => ({
+		minx: quad.reduce((prev: number, curr: any) => Math.min(prev, curr.x), quad[0].x),
+		maxx: quad.reduce((prev: number, curr: any) => Math.max(prev, curr.x), quad[0].x),
+		miny: quad.reduce((prev: number, curr: any) => Math.min(prev, curr.y), quad[0].y),
+		maxy: quad.reduce((prev: number, curr: any) => Math.max(prev, curr.y), quad[0].y),
+	}));
+
+	// Order the quads in reading order — top line first (PDF y descending), then
+	// left-to-right — because some PDF producers (e.g. GNOME "Papers") store a
+	// multi-line highlight's quads bottom-to-top, which would otherwise reverse
+	// the extracted lines. Quads within a line (vertical centres within half a
+	// line height) are ordered by x.
+	boxes.sort((a: any, b: any) => {
+		const acy = (a.miny + a.maxy) / 2;
+		const bcy = (b.miny + b.maxy) / 2;
+		const tol = Math.min(a.maxy - a.miny, b.maxy - b.miny) / 2;
+		if (Math.abs(acy - bcy) <= tol) return a.minx - b.minx;
+		return bcy - acy;
+	});
+
+	const highlight = boxes.reduce((txt: string, box: any) => {
+		const res = searchQuad(box.minx, box.maxx, box.miny, box.maxy, items);
 		// if the last character of txt (previous lines) is not a hyphen, we concatenate the lines, by adding a blank
 		if (txt != "" && txt.substring(txt.length - 1) != "-") {
 			return txt + " " + res;

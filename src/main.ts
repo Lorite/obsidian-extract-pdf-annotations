@@ -298,6 +298,7 @@ export default class PDFAnnotationPlugin extends Plugin {
 					"overwriteExistingNote",
 				"extractTagsFromAnnotationsAsObsidianTags",
 				"exportClipboardExtraction",
+				"colorMarkerRules",
 			];
 				toLoad.forEach((setting) => {
 					if (setting in loadedSettings) {
